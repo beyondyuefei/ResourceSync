@@ -10,7 +10,6 @@ import io.netty.channel.EventLoopGroup;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class ResourceExecutorComponent implements Lifecycle {
     private final EventLoopGroup eventLoopGroup;
@@ -55,7 +54,7 @@ public class ResourceExecutorComponent implements Lifecycle {
 
     @Override
     public void stop() {
-        //eventLoopGroup.close();
-        eventLoopLoadingCache.cleanUp();
+        eventLoopGroup.close();
+        eventLoopLoadingCache.invalidateAll();
     }
 }
