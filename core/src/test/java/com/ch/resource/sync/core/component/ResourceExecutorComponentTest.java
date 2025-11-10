@@ -1,6 +1,6 @@
 package com.ch.resource.sync.core.component;
 
-import com.ch.resource.sync.core.ResourceKey;
+import com.ch.resource.sync.core.common.ResourceKey;
 import io.netty.channel.EventLoop;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
