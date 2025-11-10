@@ -1,4 +1,4 @@
-package com.ch.resource.sync.core.component;
+package com.ch.resource.sync.core.server;
 
 import com.ch.resource.sync.core.common.ResourceKey;
 import io.netty.channel.EventLoop;

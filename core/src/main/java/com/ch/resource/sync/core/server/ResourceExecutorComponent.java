@@ -1,7 +1,7 @@
-package com.ch.resource.sync.core.component;
+package com.ch.resource.sync.core.server;
 
 import com.ch.resource.sync.core.common.ResourceKey;
-import com.ch.resource.sync.core.lifecycle.Lifecycle;
+import com.ch.resource.sync.core.component.Component;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.netty.channel.DefaultEventLoopGroup;
@@ -11,7 +11,7 @@ import io.netty.channel.EventLoopGroup;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-public class ResourceExecutorComponent implements Lifecycle {
+public class ResourceExecutorComponent implements Component {
     private final EventLoopGroup eventLoopGroup;
     // fixme 机器节点之间出现rebalance后，需要考虑清空缓存 ？因为一些key可能不会再路由过来了
     private final LoadingCache<String, EventLoop> eventLoopLoadingCache = Caffeine.newBuilder()
