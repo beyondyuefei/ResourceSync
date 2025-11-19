@@ -11,6 +11,13 @@ public class Node {
         this.isHealth = true;
     }
 
+    public static Node of(final String uniqueKey) {
+        final String[] ipAndPort = uniqueKey.split(":");
+        final String ip = ipAndPort[0];
+        final int port = Integer.parseInt(ipAndPort[1]);
+        return new Node(ip, port);
+    }
+
     public String getNodeUniqueKey() {
         return ip + ":" + port;
     }
