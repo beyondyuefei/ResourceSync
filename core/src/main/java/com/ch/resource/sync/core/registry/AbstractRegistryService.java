@@ -2,12 +2,25 @@ package com.ch.resource.sync.core.registry;
 
 import com.ch.resource.sync.core.common.Node;
 
-public abstract class AbstractRegistryService implements RegistryService{
+import java.util.List;
+
+public abstract class AbstractRegistryService implements RegistryService {
     protected volatile RegistryNotifyListener registryNotifyListeners;
 
     @Override
     public void subscribe(RegistryNotifyListener registryNotifyListener) {
         this.registryNotifyListeners = registryNotifyListener;
+    }
+
+    @Override
+    public void unsubscribe() {
+        this.registryNotifyListeners = null;
+    }
+
+    protected void doNotify(final List<Node> nodes) {
+        if (registryNotifyListeners != null) {
+            registryNotifyListeners.registryNotify(nodes);
+        }
     }
 
     protected final Node localNode() {

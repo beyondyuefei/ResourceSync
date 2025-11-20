@@ -37,4 +37,13 @@ public class Node {
     public void setHealth(boolean health) {
         isHealth = health;
     }
+
+    @Override
+    public String toString() {
+        return "Node{" +
+                "ip='" + ip + '\'' +
+                ", port=" + port +
+                ", isHealth=" + isHealth +
+                '}';
+    }
 }

@@ -1,14 +1,11 @@
 package com.ch.resource.sync.core.registry.mock;
 
-import com.ch.resource.sync.core.common.Node;
 import com.ch.resource.sync.core.registry.AbstractRegistryService;
 import com.ch.resource.sync.core.registry.RegistryNotifyListener;
 
-import java.util.List;
-
 public class MockRegistryService extends AbstractRegistryService {
     @Override
-    public void register() {
+    public void registerCurrentNode() {
        // do nothing
     }
 
@@ -23,12 +20,7 @@ public class MockRegistryService extends AbstractRegistryService {
     }
 
     @Override
-    public void unregister() {
+    public void unregisterCurrentNode() {
 
-    }
-
-    @Override
-    public List<Node> getNodes() {
-        return List.of(new Node("127.0.0.1", 1211));
     }
 }
