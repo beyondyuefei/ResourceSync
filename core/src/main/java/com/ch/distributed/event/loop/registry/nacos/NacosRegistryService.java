@@ -1,9 +1,9 @@
-package com.ch.distributed.event.loop.registry.mock;
+package com.ch.distributed.event.loop.registry.nacos;
 
 import com.ch.distributed.event.loop.registry.AbstractRegistryService;
 import com.ch.distributed.event.loop.registry.RegistryNotifyListener;
 
-public class MockRegistryService extends AbstractRegistryService {
+public class NacosRegistryService extends AbstractRegistryService {
     @Override
     public void registerCurrentNode() {
        // do nothing
