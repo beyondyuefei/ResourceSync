@@ -7,6 +7,6 @@ import com.ch.distributed.event.loop.registry.RegistryNotifyListener;
 
 import java.util.List;
 
-public interface Cluster extends RegistryNotifyListener, Component {
+public interface Cluster {
     ResourceHandler join(final List<Node> nodes);
 }
