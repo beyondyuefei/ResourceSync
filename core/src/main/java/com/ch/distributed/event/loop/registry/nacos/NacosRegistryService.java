@@ -4,9 +4,20 @@ import com.ch.distributed.event.loop.registry.AbstractRegistryService;
 import com.ch.distributed.event.loop.registry.RegistryNotifyListener;
 
 public class NacosRegistryService extends AbstractRegistryService {
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
     @Override
     public void registerCurrentNode() {
-       // do nothing
+        // do nothing
     }
 
     @Override

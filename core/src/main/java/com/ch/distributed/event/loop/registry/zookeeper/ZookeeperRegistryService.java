@@ -16,14 +16,16 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ZookeeperRegistryService extends AbstractRegistryService implements Component {
     private final CuratorFramework zkClient;
     private static final String CLUSTER_PATH = "/resource-sync/cluster";
     private final CuratorCache curatorCache;
-    private final CompletableFuture<List<Node>> initNodesFuture = new CompletableFuture<>();
+    private final CountDownLatch initNodesLatch = new CountDownLatch(1);
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ZookeeperRegistryService.class);
 
     public ZookeeperRegistryService(final String zkServers, final Integer connectionTimeout) {
@@ -39,17 +41,17 @@ public class ZookeeperRegistryService extends AbstractRegistryService implements
                 .build();
         zkClient.getConnectionStateListenable().addListener(this::handleConnectionStateChange);
         curatorCache = CuratorCache.builder(zkClient, CLUSTER_PATH).build();
+        addNodeChangeCuratorCacheListener();
     }
 
     @Override
     public void start() {
         try {
             zkClient.start();
-            final List<Node> nodes = initNodesFuture.get(15, TimeUnit.SECONDS);
-            if (nodes != null && !nodes.isEmpty()) {
-                LOGGER.info("zookeeper客户端初始化成功，zookeeper集群节点: {}", nodes);
+            if (initNodesLatch.await(10, TimeUnit.SECONDS)) {
+                LOGGER.info("zookeeper客户端初始化成功");
             } else {
-                final String errorMsg = "zookeeper客户端初始化异常，无节点数据，请确认zookeeper集群是否正常启动";
+                final String errorMsg = "zookeeper客户端初始化超时!";
                 LOGGER.error(errorMsg);
                 throw new LifecycleException(errorMsg);
             }
@@ -77,7 +79,7 @@ public class ZookeeperRegistryService extends AbstractRegistryService implements
                 LOGGER.info("connect success for zookeeper!");
                 ensureClusterPathWithLock();
                 curatorCache.start();
-                addNodeChangeListener();
+                initNodesLatch.countDown();
                 break;
             case RECONNECTED:
                 LOGGER.warn("occur reconnect for zookeeper!");
@@ -88,22 +90,29 @@ public class ZookeeperRegistryService extends AbstractRegistryService implements
         }
     }
 
-    private void addNodeChangeListener() {
+    private void addNodeChangeCuratorCacheListener() {
         // fixme: 确认一下 newChildData 与  curatorCache.stream() 返回的ChildData都是一样的吗？即都是最新的
         curatorCache.listenable().addListener((type, oldChildData, newChildData) -> {
             LOGGER.info("监听到节点变化, type: {}", type);
-            initNodesFuture.complete(getLatestNodesAndDoNotify());
+            getLatestNodesAndDoNotify();
         });
     }
 
-    private List<Node> getLatestNodesAndDoNotify() {
-        final List<Node> nodes = new ArrayList<>();
-        curatorCache.stream().forEach(childData -> {
-            final String nodeUniqueKey = childData.getPath().substring(CLUSTER_PATH.length() + 1);
-            nodes.add(Node.of(nodeUniqueKey));
-        });
+    private void getLatestNodesAndDoNotify() {
+        final List<Node> nodes = curatorCache.stream()
+                // 测试发现，curatorCache 的节点变化回调中会包括监听的父节点，这里要过滤掉
+                .filter(childData -> !childData.getPath().equals(CLUSTER_PATH))
+                .map(childData -> {
+                    final String nodeUniqueKey = childData.getPath().substring(CLUSTER_PATH.length() + 1);
+                    return Node.of(nodeUniqueKey);
+                })
+                .collect(Collectors.toList());
+
+        if (nodes.isEmpty()) {
+            LOGGER.info("子节点列表为空，只有父节点 {}，直接返回不处理回调", CLUSTER_PATH);
+            return;
+        }
         doNotify(nodes);
-        return nodes;
     }
 
     /**
@@ -135,10 +144,22 @@ public class ZookeeperRegistryService extends AbstractRegistryService implements
             throw new IllegalStateException("zkClient is not started");
         }
         final Node localNode = localNode();
+        // 检查节点是否已经存在
+        // todo: 为啥断链后ZK的临时znode不会立即删除的情况出现，需确认，比如：是不是因为直接kill进程导致
         try {
-            zkClient.create()
+            if (zkClient.checkExists().forPath(CLUSTER_PATH + "/" + localNode.getNodeUniqueKey()) != null) {
+                LOGGER.warn("节点已存在:{}, 则先删除并重新创建", localNode.getNodeUniqueKey());
+                zkClient.delete().forPath(CLUSTER_PATH + "/" + localNode.getNodeUniqueKey());
+            }
+        } catch (Exception e) {
+            LOGGER.error("检查节点是否存在失败:{}", localNode.getNodeUniqueKey(), e);
+        }
+
+        try {
+            final String currentNodePath = zkClient.create()
                     .withMode(CreateMode.EPHEMERAL)
                     .forPath(CLUSTER_PATH + "/" + localNode.getNodeUniqueKey(), localNode.getNodeUniqueKey().getBytes());
+            LOGGER.info("成功注册当前节点:{}", currentNodePath);
         } catch (Exception e) {
             LOGGER.error("注册节点失败:{}", localNode.getNodeUniqueKey(), e);
             throw new RuntimeException(e);

@@ -2,6 +2,9 @@ package com.ch.distributed.event.loop.common;
 
 public class Node {
     private final String ip;
+    /**
+     * 端口，是为了支持单台机器上多个JVM进城作为Client的场景
+     */
     private final int port;
     private volatile boolean isHealth;
 

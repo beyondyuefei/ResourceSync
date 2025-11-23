@@ -1,6 +1,8 @@
 package com.ch.distributed.event.loop.registry;
 
-public interface RegistryService {
+import com.ch.distributed.event.loop.component.Component;
+
+public interface RegistryService extends Component {
     void registerCurrentNode();
 
     void unregisterCurrentNode();
