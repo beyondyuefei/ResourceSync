@@ -1,13 +1,11 @@
 package com.ch.distributed.event.loop.client.cluster;
 
 import com.ch.distributed.event.loop.client.ResourceHandler;
-import com.ch.distributed.event.loop.common.Node;
+import com.ch.distributed.event.loop.client.cluster.support.FastfailClusterResourceHandler;
 
-import java.util.List;
-
-public class FastfailCluster implements Cluster{
+public class FastfailCluster implements Cluster {
     @Override
-    public ResourceHandler join(List<Node> nodes) {
-        return null;
+    public ResourceHandler join() {
+        return new FastfailClusterResourceHandler();
     }
 }

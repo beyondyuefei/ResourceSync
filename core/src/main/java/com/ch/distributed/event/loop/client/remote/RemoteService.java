@@ -1,4 +1,7 @@
 package com.ch.distributed.event.loop.client.remote;
 
-public interface RemoteService {
+import com.ch.distributed.event.loop.client.ResourceHandler;
+import com.ch.distributed.event.loop.component.Component;
+
+public interface RemoteService extends ResourceHandler, Component {
 }

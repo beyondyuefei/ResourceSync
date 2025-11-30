@@ -3,7 +3,7 @@ package com.ch.distributed.event.loop.client.cluster.support;
 import com.ch.distributed.event.loop.client.ResourceHandler;
 import com.ch.distributed.event.loop.client.ResourceHandlerRequest;
 import com.ch.distributed.event.loop.client.loadbalance.LoadBalance;
-import com.ch.distributed.event.loop.client.loadbalance.sticky.InjvmStickyLoadBalance;
+import com.ch.distributed.event.loop.client.loadbalance.sticky.InjvmLoadBalance;
 import com.ch.distributed.event.loop.common.Node;
 import com.ch.distributed.event.loop.component.Component;
 import com.ch.distributed.event.loop.registry.RegistryService;
@@ -22,7 +22,7 @@ public abstract class AbstractClusterResourceHandler implements ClusterResourceH
     @Override
     public void start() {
         // fixme: 这里先用InjvmStickyLoadBalance，后续基于SPI扩展
-        loadBalance = new InjvmStickyLoadBalance();
+        loadBalance = new InjvmLoadBalance();
         // fixme: 这里先用ZookeeperRegistryService，后续基于SPI扩展、以及Map参数的填充
         registryService = new ZookeeperRegistryServiceFactory().createRegistryService(Collections.emptyMap());
         registryService.subscribe(nodes -> {
@@ -31,7 +31,7 @@ public abstract class AbstractClusterResourceHandler implements ClusterResourceH
         });
     }
 
-    protected final ResourceHandler doSelect(final ResourceHandlerRequest resourceHandlerRequest, final List<Node> nodes) {
+    protected final ResourceHandler doSelect(final ResourceHandlerRequest resourceHandlerRequest) {
         return loadBalance.select(resourceHandlerRequest, nodes);
     }
 
